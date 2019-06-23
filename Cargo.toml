@@ -5,4 +5,7 @@ authors = ["Hugo <hchastel@laposte.net>"]
 edition = "2018"
 
 [dependencies]
+lazy_static = "1.2.0"
+regex = "1"
 reqwest = "0.9.18"
+prettytable-rs = "^0.8"
