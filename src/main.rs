@@ -18,7 +18,7 @@ fn main() {
 
     println!("checking link : {:?}!", link_to_check);
     let res = retrieve_html(link_to_check.to_string());
-    let links = retrieve_links_from_html(&res);
+    let links = retrieve_links_from_html(&res, link_to_check.to_string());
     println!("link : {:?}!", links);
 
 
@@ -33,7 +33,7 @@ fn retrieve_html(link: String) -> String {
     response.text().unwrap()
 }
 
-fn retrieve_links_from_html(text: &str) -> Vec<&str> {
+fn retrieve_links_from_html(text: &str, from_link: String) -> Vec<&str> {
     lazy_static! {  // build the regex only once
         static ref RE: Regex = Regex::new(r#"<a [^>]* href="([^"]+)"([^>]|\s)*>"#).unwrap();
     }
@@ -42,7 +42,21 @@ fn retrieve_links_from_html(text: &str) -> Vec<&str> {
     for link in RE.captures_iter(&text) {
         res.push(link.get(1).unwrap().as_str());
     }
+    handle_relative_links(&res, from_link);
     res
+}
+
+fn handle_relative_links(links: &Vec<&str>, base_link: String) {
+    for mut link in links.iter() {
+        println!("link : {:?}", link);
+        if link.starts_with("/") {  // check if the link is a relative link
+            println!("BASE !");
+            let mut tmp = base_link.clone();
+            tmp.push_str(link);
+            link = &(tmp.as_str());
+            println!("link changed : {:?}", link);
+        }
+    }
 }
 
 fn is_website_up(link: &str) -> bool {
@@ -50,7 +64,7 @@ fn is_website_up(link: &str) -> bool {
 
     match resp {
         Err(e) => {
-            println!("err");
+            println!("err ({:?})", e);
             false
         },
         Ok(r) => {
